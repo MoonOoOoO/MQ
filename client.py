@@ -5,6 +5,7 @@
 #
 
 import zmq
+import time
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
@@ -33,7 +34,7 @@ def send_array(s, arr, flags=0, copy=True, track=False):
     """send a numpy array with metadata"""
     md = dict(
         dtype=str(arr.dtype),
-        shape=arr.shape,
+        shape=arr.shape
     )
     s.send_json(md, flags | zmq.SNDMORE)
     return s.send(arr, flags, copy=copy, track=track)
@@ -41,12 +42,14 @@ def send_array(s, arr, flags=0, copy=True, track=False):
 
 #  Do 10 requests, waiting each time for a response
 for request in range(10):
+    tic = time.time()
     img = preprocessing(IMAGE_PATH)
 
-    print("Sending request %s …" % request)
+    img = np.array(img)
     # socket.send(img)
     send_array(socket, img)
 
     #  Get the reply.
     message = socket.recv()
-    print("Received reply %s [ %s ]" % (request, message))
+    #print(message.decode('utf-8'))
+    print((time.time() - tic) * 1000)
