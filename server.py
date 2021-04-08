@@ -24,7 +24,8 @@ def recv_array(s, flags=0, copy=True, track=False):
 
 while True:
     #  Wait for next request from client
-    message = recv_array(socket)
+#    message = recv_array(socket)
+    message = socket.recv()
     print("Received request: %s" % str(message))
 
     #  Send reply back to client

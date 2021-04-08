@@ -17,7 +17,6 @@ from concurrent.futures import ThreadPoolExecutor
 context = zmq.Context()
 
 #  Socket to talk to server
-print("Connecting to hello world server…")
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
@@ -29,6 +28,7 @@ def preprocessing(img_path):
     x = image.img_to_array(x)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
+    x = tf.constant(x)
     return x
 
 
@@ -48,7 +48,8 @@ a = np.array([0, 1, 2, 3, 4, 5])
 for request in range(10):
     img = preprocessing(IMAGE_PATH)
     print("Sending request %s …" % request)
-    send_array(socket, img)
+    # send_array(socket, img)
+    socket.send(img)
 
     #  Get the reply.
     message = socket.recv()
