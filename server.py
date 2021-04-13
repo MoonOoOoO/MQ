@@ -19,7 +19,6 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
@@ -45,4 +44,4 @@ while True:
     result = decode_predictions(pred)
 
     #  Send reply back to client
-    socket.send(bytes(' '.join(map(str, result[0])),'utf-8'))
+    socket.send(bytes(' '.join(map(str, result[0])), 'utf-8'))

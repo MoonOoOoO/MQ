@@ -51,5 +51,5 @@ for request in range(10):
 
     #  Get the reply.
     message = socket.recv()
-    #print(message.decode('utf-8'))
+    # print(message.decode('utf-8'));
     print((time.time() - tic) * 1000)
