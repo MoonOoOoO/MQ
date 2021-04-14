@@ -18,6 +18,17 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 
 
+def send_array(s, arr, flags=0, copy=True, track=False):
+    arr = np.array(arr)
+    """send a numpy array with metadata"""
+    md = dict(
+        dtype=str(arr.dtype),
+        shape=arr.shape
+    )
+    s.send_json(md, flags | zmq.SNDMORE)
+    return s.send(arr, flags, copy=copy, track=track)
+
+
 def recv_array(s, flags=0, copy=True, track=False):
     """recv a numpy array"""
     md = s.recv_json(flags=flags)
@@ -36,6 +47,6 @@ while True:
 
     pred = model.predict(message)
     result = decode_predictions(pred)
-
     #  Send reply back to client
-    socket.send(bytes(' '.join(map(str, result[0])), 'utf-8'))
+    # socket.send(bytes(' '.join(map(str, result)), 'utf-8'))
+    send_array(socket, result)

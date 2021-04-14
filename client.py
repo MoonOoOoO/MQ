@@ -1,6 +1,7 @@
 import cv2
 import zmq
 import time
+import threading
 import numpy as np
 import tensorflow as tf
 from queue import Empty, Queue
@@ -60,6 +61,15 @@ def send_array(s, arr, flags=0, copy=True, track=False):
     s.send_json(md, flags | zmq.SNDMORE)
     return s.send(arr, flags, copy=copy, track=track)
 
+def recv_array(s, flags=0, copy=True, track=False):
+    """recv a numpy array"""
+    md = s.recv_json(flags=flags)
+    msg = s.recv(flags=flags, copy=copy, track=track)
+    buf = memoryview(msg)
+    arr = np.frombuffer(buf, dtype=md['dtype'])
+    return arr.reshape(md['shape'])
+
+
 
 def handle_requests_by_batch():
     while True:
@@ -75,9 +85,9 @@ def handle_requests_by_batch():
         batched_input = form_batch(requests_batch)
         send_array(socket, batched_input)
         # batch_outputs = model.predict(batched_input)
-        message = socket.recv()
-        print(message)
-
+        # message = socket.recv()
+        message = recv_array(socket)
+        
         for request, output in zip(requests_batch, message):
             request['output'] = str(output)
 
@@ -96,6 +106,7 @@ def handle_requests_by_batch():
 #     # print(message.decode('utf-8'));
 #     print((time.time() - tic) * 1000)
 
+threading.Thread(target=handle_requests_by_batch).start()
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -105,9 +116,7 @@ def predict():
             img_from_url = np.fromstring(f.read(), np.uint8)
             img_from_url = cv2.imdecode(img_from_url, cv2.IMREAD_COLOR)
             req = {'input': img_from_url, 'time': time.time()}
-            # tic = time.time()
             requests_queue.put(req)
-            # print("Enter queue: %s ms" % ((time.time() - tic)*1000))
             while 'output' not in req:
                 time.sleep(CHECK_INTERVAL)
             return {'predictions': req['output']}
