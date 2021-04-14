@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
 
+from arraytool import send_array, recv_array
+
 app = Flask(__name__)
 context = zmq.Context()
 
@@ -52,25 +54,6 @@ def form_batch(requests_batch):
     return np.array(tf.constant(batched_input))
 
 
-def send_array(s, arr, flags=0, copy=True, track=False):
-    """send a numpy array with metadata"""
-    md = dict(
-        dtype=str(arr.dtype),
-        shape=arr.shape
-    )
-    s.send_json(md, flags | zmq.SNDMORE)
-    return s.send(arr, flags, copy=copy, track=track)
-
-def recv_array(s, flags=0, copy=True, track=False):
-    """recv a numpy array"""
-    md = s.recv_json(flags=flags)
-    msg = s.recv(flags=flags, copy=copy, track=track)
-    buf = memoryview(msg)
-    arr = np.frombuffer(buf, dtype=md['dtype'])
-    return arr.reshape(md['shape'])
-
-
-
 def handle_requests_by_batch():
     while True:
         requests_batch = []
@@ -87,7 +70,7 @@ def handle_requests_by_batch():
         # batch_outputs = model.predict(batched_input)
         # message = socket.recv()
         message = recv_array(socket)
-        
+
         for request, output in zip(requests_batch, message):
             request['output'] = str(output)
 
@@ -107,6 +90,7 @@ def handle_requests_by_batch():
 #     print((time.time() - tic) * 1000)
 
 threading.Thread(target=handle_requests_by_batch).start()
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
