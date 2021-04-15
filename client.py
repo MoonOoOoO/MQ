@@ -1,3 +1,5 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1" 
 import cv2
 import zmq
 import time
@@ -21,8 +23,8 @@ socket.connect("tcp://localhost:5555")
 
 IMAGE_PATH = "elephant.jpg"
 
-BATCH_SIZE = 64
-BATCH_TIMEOUT = 0.6
+BATCH_SIZE = 32 
+BATCH_TIMEOUT = 0.5
 CHECK_INTERVAL = 0.01
 
 requests_queue = Queue()
@@ -42,6 +44,7 @@ def prepare_image(raw_image):
     x = image.img_to_array(x)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
+    x = tf.constant(x)
     return x
 
 
@@ -90,6 +93,18 @@ def handle_requests_by_batch():
 #     print((time.time() - tic) * 1000)
 
 threading.Thread(target=handle_requests_by_batch).start()
+
+@app.route('/test', methods=['POST'])
+def test():
+    if flask_request.method == 'POST':
+        f = flask_request.files['file']
+        if f:
+            img_from_url = np.fromstring(f.read(), np.uint8)
+            img_from_url = cv2.imdecode(img_from_url, cv2.IMREAD_COLOR)
+            img_from_url = prepare_image(img_from_url)
+            send_array(socket, np.array(img_from_url))
+            message = recv_array(socket)
+            return {'predictions': message.tolist()}
 
 
 @app.route('/predict', methods=['POST'])
