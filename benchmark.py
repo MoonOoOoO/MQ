@@ -4,9 +4,18 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input, decode_predictions
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+
+
 BATCH_SIZE = 8
 N_WARMUP_RUN = 50
-N_RUN = 500
+N_RUN = 1000 
 
 
 def generate_batch():
