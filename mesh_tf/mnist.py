@@ -181,7 +181,6 @@ def preprocess_test_data():
 
 
 if __name__ == '__main__':
-    # (x_train, y_train), (x_test, y_test) = mnist.load_data()
     tf.disable_v2_behavior()
     tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -191,4 +190,3 @@ if __name__ == '__main__':
         mnist_classifier.train(input_fn=preprocess_train_data, hooks=None)
         eval_result = mnist_classifier.evaluate(input_fn=preprocess_test_data)
         print(eval_result)
-# mnist_model(, tf.convert_to_tensor(['elephant']), mesh)
