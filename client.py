@@ -1,4 +1,5 @@
-import os
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import cv2
 import zmq
 import time
@@ -13,14 +14,12 @@ from tensorflow.keras.applications.resnet50 import preprocess_input
 
 from arraytool import send_array, recv_array
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 app = Flask(__name__)
 context = zmq.Context()
 
 #  Socket to talk to server
 socket = context.socket(zmq.REQ)
-socket.connect("tcp://10.210.210.54:5555")
+socket.connect("tcp://localhost:5555")
 
 IMAGE_PATH = "elephant.jpg"
 
