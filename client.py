@@ -98,9 +98,9 @@ threading.Thread(target=handle_requests_by_batch).start()
 @app.route('/test', methods=['POST'])
 def test():
     if flask_request.method == 'POST':
-        f = flask_request.files['file']
+        f = flask_request.files['file'].read()
         if f:
-            img_from_url = np.fromstring(f.read(), np.uint8)
+            img_from_url = np.fromstring(f, np.uint8)
             img_from_url = cv2.imdecode(img_from_url, cv2.IMREAD_COLOR)
             img_from_url = prepare_image(img_from_url)
             send_array(socket, np.array(img_from_url))
@@ -111,9 +111,9 @@ def test():
 @app.route('/predict', methods=['POST'])
 def predict():
     if flask_request.method == 'POST':
-        f = flask_request.files['file']
+        f = flask_request.files['file'].read()
         if f:
-            img_from_url = np.fromstring(f.read(), np.uint8)
+            img_from_url = np.fromstring(f, np.uint8)
             img_from_url = cv2.imdecode(img_from_url, cv2.IMREAD_COLOR)
             req = {'input': img_from_url, 'time': time.time()}
             requests_queue.put(req)
